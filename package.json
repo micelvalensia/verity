@@ -1,0 +1,39 @@
+{
+  "name": "verity-review",
+  "version": "0.1.0",
+  "description": "Evidence-Based AI Code Review Framework & Local-First MCP Server",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "type": "module",
+  "bin": {
+    "verity": "./bin/verity.ts",
+    "verity-review": "./bin/verity.ts"
+  },
+  "scripts": {
+    "start": "bun run bin/verity.ts",
+    "mcp": "bun run src/mcp/server.ts",
+    "test": "bun test"
+  },
+  "keywords": [
+    "mcp",
+    "code-review",
+    "ai-agent",
+    "evidence-based",
+    "git-hook",
+    "vibe-coding"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5 || ^6 || ^7"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "commander": "^15.0.0",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  }
+}
