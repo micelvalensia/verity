@@ -76,3 +76,45 @@ export const ReviewSummarySchema = z.object({
   results: z.array(RuleResultSchema),
 });
 export type ReviewSummary = z.infer<typeof ReviewSummarySchema>;
+
+export const DiffLineSchema = z.object({
+  type: z.enum(["add", "del", "normal"]),
+  content: z.string(),
+  newLineNumber: z.number().optional(),
+  oldLineNumber: z.number().optional(),
+});
+export type DiffLine = z.infer<typeof DiffLineSchema>;
+
+export const DiffHunkSchema = z.object({
+  oldStart: z.number(),
+  oldLines: z.number(),
+  newStart: z.number(),
+  newLines: z.number(),
+  heading: z.string().optional(),
+  lines: z.array(DiffLineSchema),
+});
+export type DiffHunk = z.infer<typeof DiffHunkSchema>;
+
+export const AddedLineSchema = z.object({
+  lineNumber: z.number(),
+  content: z.string(),
+});
+export type AddedLine = z.infer<typeof AddedLineSchema>;
+
+export const FileDiffSchema = z.object({
+  oldPath: z.string().optional(),
+  newPath: z.string(),
+  isNew: z.boolean(),
+  isDeleted: z.boolean(),
+  isBinary: z.boolean(),
+  hunks: z.array(DiffHunkSchema),
+  addedLines: z.array(AddedLineSchema),
+});
+export type FileDiff = z.infer<typeof FileDiffSchema>;
+
+export const ParsedDiffSchema = z.object({
+  files: z.array(FileDiffSchema),
+  raw: z.string(),
+});
+export type ParsedDiff = z.infer<typeof ParsedDiffSchema>;
+

@@ -1,0 +1,16 @@
+id: GEN-CLN-003
+name: No Magic Numbers or Unexplained Literals
+pack: verity:core
+severity: low
+file_patterns:
+  - "**/*"
+criteria: |
+  Nilai angka konstan atau string status penting (magic numbers/literals) tidak boleh
+  ditulis langsung tanpa penjelasan di tengah alur logika. Definisikan ke dalam variabel bernama,
+  konstanta, atau enum yang bermakna.
+verification:
+  method: semantic
+evidence_requirements:
+  pass_condition: "Nilai konstan diekstrak menjadi konstanta bernama (misal: MAX_RETRIES, STATUS_PENDING) atau enum."
+  fail_condition: "Ditemukan angka acak tanpa nama yang menentukan alur logika penting (misal: if (status === 4))."
+  unknown_condition: "Angka umum seperti 0, 1, -1, atau 100 (persentase) yang penggunaannya sudah jelas secara konteks."

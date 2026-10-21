@@ -1,0 +1,19 @@
+id: GEN-ARCH-001
+name: Code Splitting and Modularity
+pack: verity:core
+severity: medium
+file_patterns:
+  - "**/*"
+criteria: |
+  Kode harus terstruktur rapi dan memprioritaskan modularitas serta code splitting.
+  - Panjang file baru/perubahan tidak boleh melebihi 300 baris kode tanpa alasan arsitektural yang kuat.
+  - Satu fungsi tidak boleh melebihi 50 baris kode.
+  - UI/Presentation layer tidak boleh mencampur database query atau raw fetch call langsung tanpa abstraksi service/action.
+verification:
+  method: deterministic
+  max_file_lines: 300
+  max_function_lines: 50
+evidence_requirements:
+  pass_condition: "File dan fungsi berada di bawah batas batas baris wajar dan memisahkan tanggung jawab (Single Responsibility)."
+  fail_condition: "File melebihi 300 baris atau fungsi melebihi 50 baris tanpa modularisasi."
+  unknown_condition: "File panjang namun berisi deklarasi tipe data / konfigurasi yang belum dapat diverifikasi apakah perlu di-split."

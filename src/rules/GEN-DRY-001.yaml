@@ -1,0 +1,16 @@
+id: GEN-DRY-001
+name: No Duplicate Code or Logic
+pack: verity:core
+severity: high
+file_patterns:
+  - "**/*"
+criteria: |
+  Fungsi, helper, utilitas, atau blok logika tidak boleh didefinisikan ulang jika fungsi dengan
+  nama, signature, atau tujuan yang sama sudah ada di dalam repository atau di bagian diff lainnya.
+  Gunakan atau refaktor fungsi yang sudah ada.
+verification:
+  method: hybrid
+evidence_requirements:
+  pass_condition: "Fungsi/logika yang baru ditambahkan adalah unik dan belum memiliki padanan di codebase."
+  fail_condition: "Ditemukan fungsi/logika yang identik atau memiliki fungsi ekuivalen pada file lain di codebase."
+  unknown_condition: "Ditemukan kemiripan nama atau pola logika, namun tidak dapat dipastikan apakah perilaku dan domainnya identik."

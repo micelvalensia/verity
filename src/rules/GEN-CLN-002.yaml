@@ -1,0 +1,17 @@
+id: GEN-CLN-002
+name: Early Exit over Deep Nesting
+pack: verity:core
+severity: medium
+file_patterns:
+  - "**/*"
+criteria: |
+  Struktur kontrol kondisional (if/else, switch, loop) tidak boleh bertumpuk terlalu dalam
+  (maksimal 3 tingkat). Utamakan penggunaan guard clauses dan early exit (return cepat)
+  untuk menjaga keterbacaan kode (clean code).
+verification:
+  method: deterministic
+  max_nesting_depth: 3
+evidence_requirements:
+  pass_condition: "Kode menggunakan guard clauses / early returns dengan kedalaman nesting <= 3 level."
+  fail_condition: "Ditemukan nesting kondisional atau loop lebih dari 3 tingkat kedalaman."
+  unknown_condition: "Nesting dalam terjadi pada complex state machine atau parser generator yang memerlukan tinjauan spesifik."

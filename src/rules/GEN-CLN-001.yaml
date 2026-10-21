@@ -1,0 +1,20 @@
+id: GEN-CLN-001
+name: No Leftover Debugger Code
+pack: verity:core
+severity: medium
+file_patterns:
+  - "**/*"
+criteria: |
+  Tidak boleh menyisakan kode debugger atau print/dump sementara di dalam perubahan kode produksi,
+  seperti console.log, debugger, print(), dd(), var_dump(), atau fmt.Println() sementara.
+verification:
+  method: deterministic
+  regex_patterns:
+    - "\\bconsole\\.(log|debug|info|trace)\\s*\\("
+    - "\\bdebugger\\b"
+    - "\\bdd\\s*\\("
+    - "\\bvar_dump\\s*\\("
+evidence_requirements:
+  pass_condition: "Tidak ditemukan sisa fungsi debug ad-hoc pada perubahan kode."
+  fail_condition: "Ditemukan fungsi console.log atau debugger yang di-commit pada file non-test."
+  unknown_condition: "Ditemukan console.log pada utility CLI atau script standalone yang mungkin memang memerlukan output stdout."

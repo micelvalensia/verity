@@ -1,0 +1,18 @@
+id: GEN-ERR-001
+name: No Silent Error Swallowing
+pack: verity:core
+severity: high
+file_patterns:
+  - "**/*"
+criteria: |
+  Blok penanganan error (seperti try-catch, except, atau onError) tidak boleh kosong
+  atau sekadar menelan error tanpa logging, re-throwing, atau recovery mechanism yang jelas.
+verification:
+  method: deterministic
+  regex_patterns:
+    - "catch\\s*\\([^)]*\\)\\s*\\{\\s*\\}"
+    - "except(\\s+[a-zA-Z0-9_]+)?\\s*:\\s*(pass|return None|return)\\s*$"
+evidence_requirements:
+  pass_condition: "Semua blok error handler mencatat log (logger/error handler) atau melempar ulang error."
+  fail_condition: "Ditemukan blok catch/except yang kosong atau hanya berisi komentar tanpa tindakan penanganan."
+  unknown_condition: "Error ditelan dengan sengaja namun tidak ada komentar penjelas alasan arsitekturalnya."
