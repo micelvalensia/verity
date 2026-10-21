@@ -59,7 +59,15 @@ miga/
 
 ---
 
-## 🚀 Perintah yang Siap Digunakan
+## 🚀 Agenda Lanjutan untuk Besok (Next Steps)
+1. **Testing ke Repository Beneran (Real Repo):**
+   - Menguji CLI `verity check` pada diff nyata di project sungguhan.
+   - Menguji integrasi MCP server di IDE (Cursor / Claude Desktop / Antigravity).
+   - Menguji pre-commit hook (`verity hook install`) saat melakukan commit nyata.
+2. **Evaluasi & Polish:**
+   - Menyempurnakan deteksi edge cases berdasarkan temuan di repo nyata.
+   - Menguji pembuatan custom rules tim di folder `.verity/rules/`.
+
 - **Jalankan Audit Lokal:** `bun run bin/verity.ts check --working` atau `bun run bin/verity.ts check --staged`
 - **Daftar Rules:** `bun run bin/verity.ts rules`
 - **Generate PR Dossier:** `bun run bin/verity.ts dossier --working`
