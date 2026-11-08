@@ -116,11 +116,16 @@ Add to `~/.gemini/config/mcp_config.json`:
 }
 ```
 
-Add a `GEMINI.md` to your project root to instruct the agent:
+Add a `GEMINI.md` (or `.cursorrules`) to your project root to instruct the agent:
 ```markdown
-# Quality Gate
-Before requesting or making a git commit, always call the MCP tool `verity_review_diff`.
-If any rule status is FAIL, fix the code immediately before proceeding.
+# Quality Gate (VerityReview)
+
+Pedoman penggunaan tool `verity_review_diff`:
+1. **Kapan dipanggil:** Panggil `verity_review_diff` HANYA SATU KALI setelah selesai mengedit kode fitur/logika (misal file di `src/`, `components/`, dll) sebelum commit.
+2. **Kapan JANGAN dipanggil:** JANGAN memanggil Verity jika tugasnya hanya membuat/mengedit rules (`.verity/**`), file dokumentasi (`.md`), atau konfigurasi.
+3. **Aturan Semantik:** Jika ada rule semantik (muncul di daftar `semanticAudits`), baca kriterianya:
+   - Jika kode yang baru kamu ubah melanggar kriteria tersebut, perbaiki kodenya.
+   - Jika kode sudah sesuai atau tidak relevan, langsung selesaikan task dan laporkan ke user. JANGAN memanggil Verity berulang-ulang!
 ```
 
 ### Option B: Cursor / Windsurf

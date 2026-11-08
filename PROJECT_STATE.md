@@ -1,9 +1,9 @@
 # VerityReview — Project State & Handover
 
-**Terakhir Diperbarui:** 2026-10-21  
-**Status Saat Ini:** Fase 1, 2, 3, & 4 Selesai (Core Engine, Verification Pipeline, Git Hook, & MCP Server Siap)  
+**Terakhir Diperbarui:** 2026-11-08  
+**Status Saat Ini:** Fase 1-4 Selesai + Agent-Driven Semantic Audit & Filter Internal Siap  
 **Cabang Git:** `main`  
-**Hasil Test:** 11 Pass, 0 Fail (100% Success)
+**Hasil Test:** 12 Pass, 0 Fail (100% Success)
 
 ---
 
@@ -14,7 +14,9 @@
 4. **Pre-Commit Enforcement:** Menolak commit lokal jika ada rule `Critical`/`High` berstatus `FAIL` (`exit 1`).
 5. **Anti-Bypass Receipt:** Commit yang lolos otomatis disematkan Git Commit Trailer (`Verity-Status`, `Verity-Receipt` SHA256, `Verity-Rules`).
 6. **Anti-Duplikasi (DRY) Hemat Token:** Deteksi fungsi duplikat di luar git changes menggunakan *Local Symbol Search* (0 token), menghasilkan bukti `symbol_match` secara instan (43ms).
-7. **MCP Server:** Menyediakan tools `verity_review_diff`, `verity_list_rules`, dan `verity_generate_dossier` untuk coding agent di IDE (Cursor, Claude Code, Antigravity, dll).
+7. **Agent-Driven Semantic Audit:** Rule semantik (seperti hapus emoji di comment atau aturan logika bisnis) didelegasikan langsung ke AI yang sedang vibe coding dengan instruksi tindakan wajib, tanpa perlu API key luar (Rp 0).
+8. **Internal Config Ignore:** File `.verity/**`, `.git/**`, dan dokumentasi otomatis diabaikan agar AI tidak looping saat menambah/mengedit rules kustom.
+9. **MCP Server:** Menyediakan tools `verity_review_diff`, `verity_list_rules`, dan `verity_generate_dossier` untuk coding agent di IDE (Cursor, Claude Code, Antigravity CLI, dll).
 
 ---
 
