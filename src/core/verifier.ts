@@ -42,6 +42,19 @@ function calculateIndentationDepth(line: string): number {
 }
 
 /**
+ * Check if a file should be ignored from code review (e.g. verity internal configs, git metadata).
+ */
+function isIgnoredFile(path: string): boolean {
+  return (
+    path.startsWith(".verity/") ||
+    path.startsWith(".git/") ||
+    path.startsWith(".agent/") ||
+    path.startsWith(".agents/") ||
+    path.includes("node_modules/")
+  );
+}
+
+/**
  * Check if a file is a test/spec or config file.
  */
 function isTestOrConfigFile(path: string): boolean {
@@ -84,9 +97,38 @@ export async function verifyDiff(
     });
   }
 
+  const reviewableFiles = parsedDiff.files.filter(
+    (file) => !file.isBinary && !file.isDeleted && !isIgnoredFile(file.newPath)
+  );
+
+  // If only ignored files (e.g. .verity/rules/*.yaml, git configs) are changed, skip auditing
+  if (reviewableFiles.length === 0) {
+    const timestamp = new Date().toISOString();
+    return {
+      timestamp,
+      commitSha: options.commitSha,
+      isStaged: options.isStaged || false,
+      filesAnalyzed: [],
+      totalRules: rules.length,
+      passed: rules.length,
+      failed: 0,
+      unknown: 0,
+      overallDecision: "APPROVE",
+      receipt: generateReceiptHash(parsedDiff.raw, [], timestamp),
+      results: rules.map((r) => ({
+        ruleId: r.id,
+        ruleName: r.name,
+        severity: r.severity,
+        status: "PASS" as const,
+        evidence: [],
+        message: "Tidak ada file kode yang relevan untuk diperiksa.",
+      })),
+      semanticAudits: [],
+    };
+  }
+
   // Iterate over files in diff
-  for (const file of parsedDiff.files) {
-    if (file.isBinary || file.isDeleted) continue;
+  for (const file of reviewableFiles) {
 
     const applicableRules = matchRulesForFile(file.newPath, rules);
 
@@ -320,7 +362,7 @@ export async function verifyDiff(
     timestamp,
     commitSha: options.commitSha,
     isStaged: options.isStaged || false,
-    filesAnalyzed: parsedDiff.files.map((f) => f.newPath),
+    filesAnalyzed: reviewableFiles.map((f) => f.newPath),
     totalRules: results.length,
     passed,
     failed,
