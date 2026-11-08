@@ -124,11 +124,33 @@ export async function startMcpServer() {
         }
 
         const summary = await verifyDiff(diff, rules, { workspaceRoot, isStaged: staged });
+
+        let responseText = JSON.stringify(summary, null, 2);
+
+        if (summary.semanticAudits && summary.semanticAudits.length > 0) {
+          const semanticInstructions = summary.semanticAudits
+            .map(
+              (task, idx) =>
+                `${idx + 1}. [${task.ruleId}] ${task.ruleName} (${task.severity.toUpperCase()})\n` +
+                `   Files: ${task.files.join(", ")}\n` +
+                `   Kriteria: "${task.criteria}"\n` +
+                `   Tindakan Wajib untuk AI: ${task.actionRequired}`
+            )
+            .join("\n\n");
+
+          responseText += `\n\n═══════════════════════════════════════════════════════════════════\n` +
+            `🚨 PERHATIAN KHUSUS UNTUK AI AGENT (SEMANTIC AUDIT INSTRUCTIONS)\n` +
+            `Terdapat ${summary.semanticAudits.length} rule semantik yang memerlukan evaluasi Anda secara langsung terhadap perubahan kode:\n\n` +
+            `${semanticInstructions}\n\n` +
+            `Jika kode yang baru Anda ubah melanggar kriteria di atas, Anda WAJIB segera memperbaiki kodenya sekarang sebelum menyelesaikan task!\n` +
+            `═══════════════════════════════════════════════════════════════════`;
+        }
+
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(summary, null, 2),
+              text: responseText,
             },
           ],
         };

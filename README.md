@@ -164,7 +164,7 @@ my-project/
 │       └── AUTH-001.yaml    # Your custom rule
 ```
 
-Example `.verity/rules/AUTH-001.yaml`:
+### 1. Deterministic Rule (Checked locally via Regex & AST)
 ```yaml
 id: AUTH-001
 name: Mandatory Auth Guard on Admin Routes
@@ -177,9 +177,20 @@ verification:
   method: deterministic
   regex_patterns:
     - "(authGuard|verifyAdmin|requireRole)"
-evidence_requirements:
-  pass_condition: "Route contains an auth guard reference."
-  fail_condition: "Admin route declared without auth guard."
+```
+
+### 2. Semantic Rule (Evaluated directly by your AI Coding Agent)
+No separate API key or cloud billing required. Verity detects semantic rules and instructs your current coding agent (e.g. Antigravity / Cursor) to inspect the diff and fix violations:
+```yaml
+id: NO-EMOTE-001
+name: No Emojis in Code Comments
+severity: high
+file_patterns:
+  - "**/*"
+criteria: |
+  Hapus semua komentar kode yang mengandung emote atau emoji.
+verification:
+  method: semantic
 ```
 
 ---

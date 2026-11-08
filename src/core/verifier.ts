@@ -10,6 +10,7 @@ import type {
   RuleDefinition,
   RuleResult,
   RuleStatus,
+  SemanticAuditTask,
 } from "./types";
 
 /**
@@ -69,6 +70,7 @@ export async function verifyDiff(
 ): Promise<ReviewSummary> {
   const workspaceRoot = options.workspaceRoot || process.cwd();
   const ruleResultsMap = new Map<string, RuleResult>();
+  const semanticAuditTasksMap = new Map<string, SemanticAuditTask>();
 
   // Initialize all active rules
   for (const rule of rules) {
@@ -240,7 +242,7 @@ export async function verifyDiff(
       }
 
       // Generic regex check for custom rules
-      else if (rule.verification?.regex_patterns) {
+      else if (rule.verification?.regex_patterns && rule.verification.regex_patterns.length > 0) {
         for (const line of file.addedLines) {
           for (const patternStr of rule.verification.regex_patterns) {
             const regex = createSafeRegExp(patternStr);
@@ -256,6 +258,32 @@ export async function verifyDiff(
               });
               ruleMessage = `Pelanggaran rule ${rule.id} di ${file.newPath}:${line.lineNumber}.`;
             }
+          }
+        }
+      }
+
+      // 8. Custom Semantic Rule (requires LLM / Agent reasoning to evaluate)
+      else if (
+        rule.verification?.method === "semantic" ||
+        (!rule.verification?.regex_patterns &&
+          !["GEN-SEC-001", "GEN-DRY-001", "GEN-ARCH-001", "GEN-ERR-001", "GEN-CLN-001", "GEN-CLN-002", "GEN-CLN-003"].includes(rule.id))
+      ) {
+        ruleStatus = "UNKNOWN";
+        ruleMessage = `Evaluasi Semantik Diperlukan: "${rule.criteria.trim()}". AI Agent wajib memverifikasi diff ini.`;
+
+        if (!semanticAuditTasksMap.has(rule.id)) {
+          semanticAuditTasksMap.set(rule.id, {
+            ruleId: rule.id,
+            ruleName: rule.name,
+            severity: rule.severity,
+            criteria: rule.criteria.trim(),
+            files: [file.newPath],
+            actionRequired: `AI Agent WAJIB mengevaluasi perubahan kode terhadap kriteria: "${rule.criteria.trim()}". Jika diff melanggar, Anda HARUS memperbaiki kodenya sekarang sebelum menyelesaikan tugas!`,
+          });
+        } else {
+          const task = semanticAuditTasksMap.get(rule.id)!;
+          if (!task.files.includes(file.newPath)) {
+            task.files.push(file.newPath);
           }
         }
       }
@@ -300,5 +328,6 @@ export async function verifyDiff(
     overallDecision,
     receipt,
     results,
+    semanticAudits: Array.from(semanticAuditTasksMap.values()),
   };
 }

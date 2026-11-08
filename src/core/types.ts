@@ -62,6 +62,16 @@ export const RuleResultSchema = z.object({
 });
 export type RuleResult = z.infer<typeof RuleResultSchema>;
 
+export const SemanticAuditTaskSchema = z.object({
+  ruleId: z.string(),
+  ruleName: z.string(),
+  severity: RuleSeveritySchema,
+  criteria: z.string(),
+  files: z.array(z.string()),
+  actionRequired: z.string(),
+});
+export type SemanticAuditTask = z.infer<typeof SemanticAuditTaskSchema>;
+
 export const ReviewSummarySchema = z.object({
   timestamp: z.string(),
   commitSha: z.string().optional(),
@@ -74,6 +84,7 @@ export const ReviewSummarySchema = z.object({
   overallDecision: z.enum(["APPROVE", "REQUEST_CHANGES", "HUMAN_REVIEW"]),
   receipt: z.string().optional(),
   results: z.array(RuleResultSchema),
+  semanticAudits: z.array(SemanticAuditTaskSchema).default([]),
 });
 export type ReviewSummary = z.infer<typeof ReviewSummarySchema>;
 

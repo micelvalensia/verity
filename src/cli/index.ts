@@ -69,13 +69,25 @@ export function createCli(): Command {
           console.log(` ${badge} ${colors.bold}${res.ruleId}${colors.reset} ${colors.gray}${severityTag}${colors.reset} — ${res.ruleName}`);
 
           if (res.status === "FAIL" || res.status === "UNKNOWN") {
-            for (const ev of res.evidence) {
-              const lineInfo = ev.lineStart ? `:${ev.lineStart}` : "";
-              console.log(`       ${colors.red}↳ ${ev.file}${lineInfo}:${colors.reset} ${ev.explanation}`);
-              if (ev.snippet) {
-                console.log(`         ${colors.gray}"${ev.snippet}"${colors.reset}`);
+            if (res.evidence.length > 0) {
+              for (const ev of res.evidence) {
+                const lineInfo = ev.lineStart ? `:${ev.lineStart}` : "";
+                const colorPrefix = res.status === "FAIL" ? colors.red : colors.yellow;
+                console.log(`       ${colorPrefix}↳ ${ev.file}${lineInfo}:${colors.reset} ${ev.explanation}`);
+                if (ev.snippet) {
+                  console.log(`         ${colors.gray}"${ev.snippet}"${colors.reset}`);
+                }
               }
+            } else {
+              console.log(`       ${colors.yellow}↳ [Audit Semantik]:${colors.reset} ${res.message}`);
             }
+          }
+        }
+
+        if (summary.semanticAudits && summary.semanticAudits.length > 0) {
+          console.log(`\n${colors.bold}${colors.cyan}🤖 Perlu Evaluasi AI Agent / Developer (${summary.semanticAudits.length} rules):${colors.reset}`);
+          for (const task of summary.semanticAudits) {
+            console.log(`  • ${colors.bold}${task.ruleId}${colors.reset}: "${task.criteria}" (Target: ${task.files.join(", ")})`);
           }
         }
 

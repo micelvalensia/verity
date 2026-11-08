@@ -103,4 +103,35 @@ index 0000000..1111111 100644
     expect(summary.receipt).toBeDefined();
     expect(summary.receipt?.length).toBe(64); // SHA-256 hex length
   });
+
+  it("should capture custom semantic rules and generate semantic audit tasks for AI agent", async () => {
+    const customRule = {
+      id: "NO-EMOTE-001",
+      name: "No Emojis in Comments",
+      pack: "custom",
+      severity: "high" as const,
+      file_patterns: ["**/*"],
+      criteria: "Hapus semua komentar yang ada emotenya",
+      verification: {
+        method: "semantic" as const,
+      },
+    };
+
+    const diff = parseGitDiff(`diff --git a/src/comment.ts b/src/comment.ts
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/src/comment.ts
+@@ -0,0 +1,3 @@
++// Halo dunia 🚀
++export const ok = true;
++`);
+
+    const summary = await verifyDiff(diff, [customRule]);
+    expect(summary.semanticAudits.length).toBe(1);
+    expect(summary.semanticAudits[0].ruleId).toBe("NO-EMOTE-001");
+    expect(summary.semanticAudits[0].actionRequired).toContain("AI Agent WAJIB mengevaluasi");
+    expect(summary.semanticAudits[0].files).toContain("src/comment.ts");
+    expect(summary.overallDecision).toBe("HUMAN_REVIEW");
+  });
 });
