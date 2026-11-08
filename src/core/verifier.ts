@@ -27,18 +27,64 @@ function createSafeRegExp(pattern: string, defaultFlags = "i"): RegExp {
 }
 
 /**
- * Calculate the nesting level based on indentation (assuming 2 or 4 spaces or tabs).
+ * Check if a line is a JSX tag, attribute, or markup line that should not be counted as logic nesting.
+ */
+function isIgnoredMarkupOrCommentLine(line: string, filePath: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed) return true;
+
+  // Ignore comments
+  if (
+    trimmed.startsWith("//") ||
+    trimmed.startsWith("/*") ||
+    trimmed.startsWith("*") ||
+    trimmed.startsWith("{/*")
+  ) {
+    return true;
+  }
+
+  // Ignore simple closing braces/brackets/parens
+  if (/^[\}\]\)\;\,\>]+$/.test(trimmed)) {
+    return true;
+  }
+
+  // In JSX/TSX/HTML/Vue/Svelte files, ignore JSX markup tags, props, and template returns
+  if (/\.(tsx|jsx|html|vue|svelte)$/i.test(filePath)) {
+    if (
+      trimmed.startsWith("<") ||
+      trimmed.startsWith("</") ||
+      trimmed.startsWith("/>") ||
+      trimmed.startsWith(">") ||
+      /^[a-zA-Z0-9_\-:]+=/.test(trimmed) || // JSX prop attribute e.g. className=...
+      trimmed.startsWith("return (") ||
+      trimmed.startsWith("return <") ||
+      trimmed.startsWith("{") ||
+      trimmed.endsWith("}") ||
+      trimmed.endsWith("}>")
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Calculate the nesting level based on indentation (handling 2-space, 4-space, or tabs).
  */
 function calculateIndentationDepth(line: string): number {
   const match = line.match(/^(\s*)/);
   if (!match) return 0;
   const whitespace = match[1];
-  let depth = 0;
+  let tabs = 0;
+  let spaces = 0;
   for (const char of whitespace) {
-    if (char === "\t") depth += 1;
-    else if (char === " ") depth += 0.5; // 2 spaces per level
+    if (char === "\t") tabs += 1;
+    else if (char === " ") spaces += 1;
   }
-  return Math.floor(depth);
+  // To avoid false positives on 4-space indentation projects, use 4 spaces per level
+  const spaceLevels = Math.floor(spaces / 4);
+  return tabs + spaceLevels;
 }
 
 /**
@@ -243,6 +289,9 @@ export async function verifyDiff(
       else if (rule.id === "GEN-CLN-002") {
         const maxDepth = rule.verification?.max_nesting_depth || 3;
         for (const line of file.addedLines) {
+          if (isIgnoredMarkupOrCommentLine(line.content, file.newPath)) {
+            continue;
+          }
           const depth = calculateIndentationDepth(line.content);
           if (depth > maxDepth + 1) {
             ruleStatus = "FAIL";

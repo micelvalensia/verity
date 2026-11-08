@@ -134,4 +134,35 @@ index 0000000..1111111
     expect(summary.semanticAudits[0].files).toContain("src/comment.ts");
     expect(summary.overallDecision).toBe("HUMAN_REVIEW");
   });
+
+  it("should not flag JSX nesting as deep control-flow nesting in TSX files (GEN-CLN-002)", async () => {
+    const rules = await loadRules();
+    const diff = parseGitDiff(`diff --git a/src/components/Scanner.tsx b/src/components/Scanner.tsx
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/src/components/Scanner.tsx
+@@ -0,0 +1,18 @@
++export function PosBarcodeScanner() {
++    return (
++        <div className="relative w-full">
++            <div className="relative flex items-center">
++                <Barcode
++                    className="absolute left-3.5 size-5"
++                />
++                <div className="absolute right-2.5 flex items-center">
++                    <span className="flex items-center">
++                        <Sparkles className="size-3" />
++                    </span>
++                </div>
++            </div>
++        </div>
++    );
++}
++`);
+
+    const summary = await verifyDiff(diff, rules);
+    const nestingResult = summary.results.find((r) => r.ruleId === "GEN-CLN-002");
+    expect(nestingResult?.status).toBe("PASS");
+  });
 });
