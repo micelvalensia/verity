@@ -20,12 +20,14 @@ export async function installGitHook(workspaceRoot: string = process.cwd()): Pro
   const preCommitPath = join(hooksDir, "pre-commit");
   const preCommitScript = `#!/bin/sh
 # VerityReview Pre-commit Guard
-if command -v bun >/dev/null 2>&1; then
-  bun run bin/verity.ts check --staged
+if command -v verity >/dev/null 2>&1; then
+  verity check --staged
+elif command -v bunx >/dev/null 2>&1; then
+  bunx verity-review check --staged
 elif command -v npx >/dev/null 2>&1; then
   npx verity-review check --staged
 else
-  echo "[Verity] Warning: Bun or Node.js not found in PATH, skipping local pre-commit check."
+  echo "[Verity] Warning: verity command not found in PATH, skipping local pre-commit check."
   exit 0
 fi
 `;
@@ -37,8 +39,10 @@ fi
   const commitMsgPath = join(hooksDir, "commit-msg");
   const commitMsgScript = `#!/bin/sh
 # VerityReview Commit Trailer Appender
-if command -v bun >/dev/null 2>&1; then
-  bun run bin/verity.ts append-trailer "$1"
+if command -v verity >/dev/null 2>&1; then
+  verity append-trailer "$1"
+elif command -v bunx >/dev/null 2>&1; then
+  bunx verity-review append-trailer "$1"
 elif command -v npx >/dev/null 2>&1; then
   npx verity-review append-trailer "$1"
 fi
