@@ -69,25 +69,13 @@ export function createCli(): Command {
           console.log(` ${badge} ${colors.bold}${res.ruleId}${colors.reset} ${colors.gray}${severityTag}${colors.reset} — ${res.ruleName}`);
 
           if (res.status === "FAIL" || res.status === "UNKNOWN") {
-            if (res.evidence.length > 0) {
-              for (const ev of res.evidence) {
-                const lineInfo = ev.lineStart ? `:${ev.lineStart}` : "";
-                const colorPrefix = res.status === "FAIL" ? colors.red : colors.yellow;
-                console.log(`       ${colorPrefix}↳ ${ev.file}${lineInfo}:${colors.reset} ${ev.explanation}`);
-                if (ev.snippet) {
-                  console.log(`         ${colors.gray}"${ev.snippet}"${colors.reset}`);
-                }
+            for (const ev of res.evidence) {
+              const lineInfo = ev.lineStart ? `:${ev.lineStart}` : "";
+              console.log(`       ${colors.red}↳ ${ev.file}${lineInfo}:${colors.reset} ${ev.explanation}`);
+              if (ev.snippet) {
+                console.log(`         ${colors.gray}"${ev.snippet}"${colors.reset}`);
               }
-            } else {
-              console.log(`       ${colors.yellow}↳ [Audit Semantik]:${colors.reset} ${res.message}`);
             }
-          }
-        }
-
-        if (summary.semanticAudits && summary.semanticAudits.length > 0) {
-          console.log(`\n${colors.bold}${colors.cyan}🤖 Perlu Evaluasi AI Agent / Developer (${summary.semanticAudits.length} rules):${colors.reset}`);
-          for (const task of summary.semanticAudits) {
-            console.log(`  • ${colors.bold}${task.ruleId}${colors.reset}: "${task.criteria}" (Target: ${task.files.join(", ")})`);
           }
         }
 
@@ -104,7 +92,7 @@ export function createCli(): Command {
           try {
             await mkdir(".verity", { recursive: true });
             await writeFile(".verity/last-receipt.json", JSON.stringify(summary, null, 2), "utf-8");
-          } catch {}
+          } catch { }
 
           process.exit(0);
         } else if (summary.overallDecision === "HUMAN_REVIEW") {
@@ -114,7 +102,7 @@ export function createCli(): Command {
           try {
             await mkdir(".verity", { recursive: true });
             await writeFile(".verity/last-receipt.json", JSON.stringify(summary, null, 2), "utf-8");
-          } catch {}
+          } catch { }
 
           process.exit(0); // UNKNOWN does not block commit, but gets flagged
         } else {
@@ -140,6 +128,20 @@ export function createCli(): Command {
         console.log(`  ${colors.bold}${r.id.padEnd(14)}${colors.reset} ${sevColor}[${r.severity.toUpperCase().padEnd(8)}]${colors.reset} ${r.name}`);
       }
       console.log("");
+    });
+
+  // Command: verity init
+  program
+    .command("init")
+    .description("Initialize Verity in workspace (.verity/rules/EXAMPLE-001.yaml, GEMINI.md, and git hooks)")
+    .action(async () => {
+      const res = await installGitHook();
+      if (res.success) {
+        console.log(`\n${colors.green}✓ ${res.message}${colors.reset}\n`);
+      } else {
+        console.error(`\n${colors.red}✗ ${res.message}${colors.reset}\n`);
+        process.exit(1);
+      }
     });
 
   // Command: verity hook install

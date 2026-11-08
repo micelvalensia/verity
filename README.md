@@ -75,6 +75,12 @@ verity rules
 
 Navigate to any Git project in your terminal:
 
+### Initialize Verity in a Project (Recommended)
+Automatically installs Git pre-commit hooks, creates `.verity/rules/EXAMPLE-001.yaml` with comprehensive field documentation, and sets up `GEMINI.md`:
+```bash
+verity init
+```
+
 ### Audit Working Changes (Unstaged)
 ```bash
 verity check --working
