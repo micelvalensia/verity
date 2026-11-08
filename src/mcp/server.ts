@@ -3,7 +3,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { getStagedDiff, getWorkingDiff } from "../core/diff";
 import { generateEvidenceDossier } from "../core/dossier";
-import { loadRules } from "../core/rules";
+import { createCustomRule, loadRules } from "../core/rules";
 import { verifyDiff } from "../core/verifier";
 
 /**
@@ -70,6 +70,56 @@ export async function startMcpServer() {
                 type: "boolean",
                 description: "If true, audits staged changes. If false, audits unstaged working changes. Default: true.",
                 default: true,
+              },
+              workspaceRoot: {
+                type: "string",
+                description: "Optional root path of the target workspace. Defaults to current working directory.",
+              },
+            },
+          },
+        },
+        {
+          name: "verity_create_rule",
+          description:
+            "Create a new custom rule YAML file inside .verity/rules/ in the current project workspace. ALWAYS call this tool whenever the user asks to create, add, or define a new Verity rule. NEVER search ~/.gemini, ps aux, or external folders.",
+          inputSchema: {
+            type: "object",
+            required: ["id", "name", "criteria"],
+            properties: {
+              id: {
+                type: "string",
+                description: "Unique rule identifier (e.g. SEC-001, CLN-NO-EMOTE, ARCH-002)",
+              },
+              name: {
+                type: "string",
+                description: "Short human-readable title of the rule",
+              },
+              severity: {
+                type: "string",
+                enum: ["critical", "high", "medium", "low"],
+                description: "Severity level of the rule (default: 'medium')",
+                default: "medium",
+              },
+              file_patterns: {
+                type: "array",
+                items: { type: "string" },
+                description: "Glob patterns of files to inspect (e.g. ['**/*'] or ['src/**/*.ts']). Default: ['**/*']",
+                default: ["**/*"],
+              },
+              criteria: {
+                type: "string",
+                description: "Clear explanation in human language of what the rule requires or prohibits.",
+              },
+              verification_method: {
+                type: "string",
+                enum: ["deterministic", "semantic", "hybrid"],
+                description: "Use 'deterministic' if there are regex patterns; use 'semantic' if it requires LLM reasoning/natural language understanding.",
+                default: "semantic",
+              },
+              regex_patterns: {
+                type: "array",
+                items: { type: "string" },
+                description: "Optional list of regex strings if verification_method is deterministic or hybrid.",
               },
               workspaceRoot: {
                 type: "string",
@@ -178,6 +228,39 @@ export async function startMcpServer() {
             {
               type: "text",
               text: dossier,
+            },
+          ],
+        };
+      }
+
+      if (name === "verity_create_rule") {
+        const id = (args?.id as string) || "CUSTOM-001";
+        const ruleName = (args?.name as string) || id;
+        const criteria = (args?.criteria as string) || "";
+        const severity = (args?.severity as any) || "medium";
+        const file_patterns = (args?.file_patterns as string[]) || ["**/*"];
+        const verification_method = (args?.verification_method as any) || "semantic";
+        const regex_patterns = (args?.regex_patterns as string[]) || undefined;
+
+        if (!criteria) {
+          throw new Error("Field 'criteria' wajib diisi untuk mendefinisikan aturan.");
+        }
+
+        const { path, rule } = await createCustomRule(workspaceRoot, {
+          id,
+          name: ruleName,
+          severity,
+          file_patterns,
+          criteria,
+          verification_method,
+          regex_patterns,
+        });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `✅ Rule '${rule.id}' (${rule.name}) berhasil dibuat!\nLokasi: ${path}\nTipe: ${rule.verification?.method}\nSeverity: ${rule.severity}\nRule ini sekarang aktif dan akan otomatis dievaluasi oleh Verity pada proyek ini.`,
             },
           ],
         };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { loadRules, matchesFilePattern, matchRulesForFile } from "../src/core/rules";
+import { createCustomRule, loadRules, matchesFilePattern, matchRulesForFile } from "../src/core/rules";
 
 describe("Rule Loader & Matcher", () => {
   it("should load all built-in rules", async () => {
@@ -27,5 +27,17 @@ describe("Rule Loader & Matcher", () => {
     const rules = await loadRules();
     const matched = matchRulesForFile("src/services/payment.ts", rules);
     expect(matched.length).toBeGreaterThan(0);
+  });
+
+  it("should create custom rule programmatically", async () => {
+    const tmpDir = `/tmp/verity-test-${Date.now()}`;
+    const res = await createCustomRule(tmpDir, {
+      id: "TEST-001",
+      name: "Test Rule",
+      criteria: "No bad code",
+      severity: "high",
+    });
+    expect(res.rule.id).toBe("TEST-001");
+    expect(res.path).toContain(".verity/rules/TEST-001.yaml");
   });
 });

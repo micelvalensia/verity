@@ -1,6 +1,6 @@
-import { readdir, readFile, stat } from "node:fs/promises";
+import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
-import { parse as parseYaml } from "yaml";
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { RuleDefinitionSchema, type RuleDefinition, type RuleSeverity } from "./types";
 
 interface VerityConfig {
@@ -115,4 +115,46 @@ export async function loadRules(workspaceRoot: string = process.cwd()): Promise<
   }
 
   return finalRules;
+}
+
+/**
+ * Programmatically create a new custom rule YAML file inside .verity/rules/
+ */
+export async function createCustomRule(
+  workspaceRoot: string,
+  ruleData: {
+    id: string;
+    name: string;
+    severity?: RuleSeverity;
+    file_patterns?: string[];
+    criteria: string;
+    verification_method?: "deterministic" | "semantic" | "hybrid";
+    regex_patterns?: string[];
+  }
+): Promise<{ path: string; rule: RuleDefinition }> {
+  const rulesDir = join(workspaceRoot, ".verity", "rules");
+  await mkdir(rulesDir, { recursive: true });
+
+  const rule: RuleDefinition = {
+    id: ruleData.id,
+    name: ruleData.name,
+    pack: "custom",
+    severity: ruleData.severity || "medium",
+    file_patterns: ruleData.file_patterns && ruleData.file_patterns.length > 0 ? ruleData.file_patterns : ["**/*"],
+    criteria: ruleData.criteria.trim(),
+    verification: {
+      method: ruleData.verification_method || (ruleData.regex_patterns?.length ? "deterministic" : "semantic"),
+      regex_patterns: ruleData.regex_patterns,
+    },
+    evidence_requirements: {
+      pass_condition: `Kode mematuhi kriteria: ${ruleData.name}`,
+      fail_condition: `Ditemukan pelanggaran terhadap kriteria: ${ruleData.name}`,
+    },
+  };
+
+  const yamlContent = stringifyYaml(rule);
+  const filePath = join(rulesDir, `${rule.id}.yaml`);
+  await writeFile(filePath, yamlContent, "utf-8");
+
+  return { path: filePath, rule };
 }
